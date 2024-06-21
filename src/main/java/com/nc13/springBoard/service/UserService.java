@@ -39,8 +39,8 @@ public class UserService {
         return SESSION.selectOne(NAMESPACE + ".auth", attempt);
     }
 
-    public boolean validateUsername(UserDTO attempt) {
-        return SESSION.selectOne(NAMESPACE + ".selectByUsername", attempt) == null;
+    public boolean validateUsername(String username) {
+        return SESSION.selectOne(NAMESPACE + ".selectByUsername", username) == null;
     }
 
     public void register(UserDTO attempt) {

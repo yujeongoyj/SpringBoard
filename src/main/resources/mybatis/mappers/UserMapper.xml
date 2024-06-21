@@ -9,7 +9,7 @@
         WHERE username = #{username} AND
         password = #{password}
     </select>
-    <select id="selectByUsername" parameterType="userDTO" resultType="userDTO">
+    <select id="selectByUsername" parameterType="string" resultType="userDTO">
         SELECT * FROM user
         WHERE username = #{username}
     </select>

@@ -45,7 +45,7 @@ public class UserController {
 
     @PostMapping("register")
     public String register(UserDTO userDTO, RedirectAttributes redirectAttributes) {
-        if (userService.validateUsername(userDTO)) {
+        if (userService.validateUsername(userDTO.getUsername())) {
             userService.register(userDTO);
         } else {
             // 회원 가입 실패 메시지 전송

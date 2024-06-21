@@ -7,14 +7,20 @@ import com.nc13.springBoard.service.BoardService;
 import com.nc13.springBoard.service.ReplyService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.HttpRequestHandler;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.net.http.HttpRequest;
+import java.nio.file.Files;
 import java.util.List;
 
 @Controller
@@ -24,7 +30,6 @@ public class BoardController {
     private BoardService boardService;
     @Autowired
     private ReplyService replyService;
-
 
 
     @GetMapping("showAll")
@@ -97,7 +102,9 @@ public class BoardController {
     }
 
     @PostMapping("write")
-    public String write(HttpSession session, BoardDTO boardDTO) {
+    public String write(HttpSession session, BoardDTO boardDTO, MultipartFile[] file) {
+        // MultipartFile 은 파일 여러개 업로드 가능, 때문에 배열
+
         UserDTO logIn = (UserDTO) session.getAttribute("logIn");
         if (logIn == null) {
             return "redirect:/";
@@ -105,7 +112,24 @@ public class BoardController {
 
         boardDTO.setWriterId(logIn.getId());
 
-        boardService.insert(boardDTO);
+        String path = "c:\\uploads";
+
+        File pathDir = new File(path);
+        if(!pathDir.exists()) {
+            pathDir.mkdirs();     // 사용자가 업로드할 때 해당 파일의 경로와 이름을 지정
+        }
+
+
+        try {
+            for(MultipartFile mf: file) {
+                File f = new File(path, mf.getOriginalFilename());
+                mf.transferTo(f); // 파일을 저 목적지로 옮기는 과정
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //          boardService.insert(boardDTO);
 
         return "redirect:/board/showOne/" + boardDTO.getId();
     }

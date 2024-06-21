@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 </head>
 <body>
 <div class="container-fluid">
@@ -24,7 +25,7 @@
             </div>
             <div class="row justify-content-center mb-3">
                 <div class="col-6">
-                    <textarea name="content" id="input_content" class="form-control" placeholder="내용">
+                    <textarea name="content" id="input_content">
                         ${boardDTO.content}
                     </textarea>
                 </div>
@@ -35,8 +36,14 @@
                 </div>
             </div>
         </div>
-
     </form>
 </div>
+<script>
+   ClassicEditor.create(
+       document.querySelector('#input_content')
+   ).catch(error => {
+       console.log(error)
+   })
+</script>
 </body>
 </html>

@@ -11,6 +11,11 @@
 <body>
 <div class="container-fluid">
     <div class="main h-100">
+        <div class="row justify-content-center">
+            <div class="col-6">
+                <img src="/images/logo.png" alt="이미지 로고">
+            </div>
+        </div>
         <form action="/user/auth" method="post">
             <div class="row justify-content-center">
                 <div class="col-4">
