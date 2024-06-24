@@ -9,6 +9,7 @@
             crossorigin="anonymous"></script>
     <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://ckeditor.com/apps/ckfinder/3.5.0/ckfinder.js"></script>
 </head>
 <body>
 <div class="container-fluid">
@@ -44,7 +45,11 @@
 </div>
 <script>
     ClassicEditor
-        .create(document.querySelector('#input_content'))
+        .create(document.querySelector('#input_content'), {
+            ckfinder: {
+                uploadUrl: '/board/uploads'
+            }
+        })
         .catch(error => {
             console.log(error)
         })

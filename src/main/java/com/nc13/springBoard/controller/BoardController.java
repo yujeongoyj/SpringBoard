@@ -5,23 +5,27 @@ import com.nc13.springBoard.model.ReplyDTO;
 import com.nc13.springBoard.model.UserDTO;
 import com.nc13.springBoard.service.BoardService;
 import com.nc13.springBoard.service.ReplyService;
+import com.nc13.springBoard.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.net.http.HttpRequest;
+import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+
 
 @Controller
 @RequestMapping("/board/")
@@ -230,6 +234,47 @@ public class BoardController {
 
 
         return "redirect:/board/showAll";
+    }
+
+    // 일반 컨트롤러 안에
+    // Restful API로써, JSON의 결과값을 리턴해야하는 경우ㅡ
+    // 맵핑 어노테이션 위에 ResponseBody 어노테이션을 붙여준다.
+    @ResponseBody
+    @PostMapping("uploads")
+    public Map<String, Object> uploads(MultipartHttpServletRequest request){
+        Map<String, Object> resultMap=new HashMap<>();
+
+        String uploadPath="";
+
+        MultipartFile file = request.getFile("upload");
+        String fileName=file.getOriginalFilename();
+        String extension=fileName.substring(fileName.lastIndexOf("."));// 파일 이름 보면 다운로드/jpg , 내음악.mp3 이런거 찾아내는 애
+        String uploadName = UUID.randomUUID() + extension;
+
+        String realPath=request.getServletContext().getRealPath("/board/uploads/");//돌아가는 톰캣의 실제 주소 찾는 메서드
+        Path realDir= Paths.get(realPath);
+        if(!Files.exists(realDir)){
+            try{
+                Files.createDirectories(realDir);
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+        }
+
+        File uploadFile = new File(realPath+uploadName);
+        try {
+            file.transferTo(uploadFile);
+        } catch (IOException e){
+            System.out.println("파일 전송 중 에러");
+            e.printStackTrace();
+        }
+
+        // 업로드 경로의 내용
+        uploadPath = "/board/uploads/"+uploadName;
+
+        resultMap.put("uploaded",true);
+        resultMap.put("url", uploadPath);
+        return resultMap;
     }
 
    /*     @GetMapping("test")
