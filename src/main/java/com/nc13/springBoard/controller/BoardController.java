@@ -9,6 +9,7 @@ import com.nc13.springBoard.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,11 +21,11 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 
 
 @Controller
@@ -42,11 +43,11 @@ public class BoardController {
     }
 
     @GetMapping("showAll/{pageNo}")
-    public String showAll(HttpSession session, Model model, @PathVariable int pageNo) {
-        UserDTO logIn = (UserDTO) session.getAttribute("logIn");
-        if (logIn == null) {
-            return "redirect:/";
-        }
+    // UserController의 auth를 통해 로그인하는 것이 아니므로, HttpSession이 아닌 Authentication을 불러온다
+    public String showAll(Model model, @PathVariable int pageNo, Authentication authentication) {
+        System.out.println("authentication: " + authentication);
+
+
         // 가장 마지막 페이지의 번호
         int maxPage = boardService.selectMaxPage();
         model.addAttribute("maxPage", maxPage);
@@ -96,47 +97,23 @@ public class BoardController {
     }
 
     @GetMapping("write")
-    public String showWrite(HttpSession session) {
-        UserDTO logIn = (UserDTO) session.getAttribute("logIn");
-        if (logIn == null) {
-            return "redirect:/";
-        }
-
+    public String showWrite() {
         return "board/write";
     }
 
+
+
+
     @PostMapping("write")
-    public String write(HttpSession session, BoardDTO boardDTO, MultipartFile[] file) {
+    public String write(BoardDTO boardDTO, Authentication authentication) {
         // MultipartFile 은 파일 여러개 업로드 가능, 때문에 배열
-
-        UserDTO logIn = (UserDTO) session.getAttribute("logIn");
-        if (logIn == null) {
-            return "redirect:/";
-        }
-
+        UserDTO logIn = (UserDTO) authentication.getPrincipal();
         boardDTO.setWriterId(logIn.getId());
-
-        String path = "c:\\uploads";
-
-        File pathDir = new File(path);
-        if(!pathDir.exists()) {
-            pathDir.mkdirs();     // 사용자가 업로드할 때 해당 파일의 경로와 이름을 지정
-        }
-
-
-        try {
-            for(MultipartFile mf: file) {
-                File f = new File(path, mf.getOriginalFilename());
-                mf.transferTo(f); // 파일을 저 목적지로 옮기는 과정
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        //          boardService.insert(boardDTO);
+        boardService.insert(boardDTO);
 
         return "redirect:/board/showOne/" + boardDTO.getId();
     }
+
 
     // 우리가 주소창에 있는 값을 매핑해줄 수 있다.
     @GetMapping("showOne/{id}")
@@ -241,38 +218,38 @@ public class BoardController {
     // 맵핑 어노테이션 위에 ResponseBody 어노테이션을 붙여준다.
     @ResponseBody
     @PostMapping("uploads")
-    public Map<String, Object> uploads(MultipartHttpServletRequest request){
-        Map<String, Object> resultMap=new HashMap<>();
+    public Map<String, Object> uploads(MultipartHttpServletRequest request) {
+        Map<String, Object> resultMap = new HashMap<>();
 
-        String uploadPath="";
+        String uploadPath = "";
 
         MultipartFile file = request.getFile("upload");
-        String fileName=file.getOriginalFilename();
-        String extension=fileName.substring(fileName.lastIndexOf("."));// 파일 이름 보면 다운로드/jpg , 내음악.mp3 이런거 찾아내는 애
+        String fileName = file.getOriginalFilename();
+        String extension = fileName.substring(fileName.lastIndexOf("."));// 파일 이름 보면 다운로드/jpg , 내음악.mp3 이런거 찾아내는 애
         String uploadName = UUID.randomUUID() + extension;
 
-        String realPath=request.getServletContext().getRealPath("/board/uploads/");//돌아가는 톰캣의 실제 주소 찾는 메서드
-        Path realDir= Paths.get(realPath);
-        if(!Files.exists(realDir)){
-            try{
+        String realPath = request.getServletContext().getRealPath("/board/uploads/");//돌아가는 톰캣의 실제 주소 찾는 메서드
+        Path realDir = Paths.get(realPath);
+        if (!Files.exists(realDir)) {
+            try {
                 Files.createDirectories(realDir);
-            } catch (IOException e){
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        File uploadFile = new File(realPath+uploadName);
+        File uploadFile = new File(realPath + uploadName);
         try {
             file.transferTo(uploadFile);
-        } catch (IOException e){
+        } catch (IOException e) {
             System.out.println("파일 전송 중 에러");
             e.printStackTrace();
         }
 
         // 업로드 경로의 내용
-        uploadPath = "/board/uploads/"+uploadName;
+        uploadPath = "/board/uploads/" + uploadName;
 
-        resultMap.put("uploaded",true);
+        resultMap.put("uploaded", true);
         resultMap.put("url", uploadPath);
         return resultMap;
     }

@@ -46,6 +46,11 @@ public class UserService {
     public void register(UserDTO attempt) {
         SESSION.insert(NAMESPACE + ".register", attempt);
     }
+
+    public UserDTO selectByUsername(String username) {
+        return SESSION.selectOne(NAMESPACE + ".selectByUsername", username);
+    }
+
 }
 
 
